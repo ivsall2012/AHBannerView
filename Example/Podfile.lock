@@ -1,0 +1,16 @@
+PODS:
+  - AHBannerView (0.1.0)
+
+DEPENDENCIES:
+  - AHBannerView (from `../`)
+
+EXTERNAL SOURCES:
+  AHBannerView:
+    :path: ../
+
+SPEC CHECKSUMS:
+  AHBannerView: 10046d7454e919fbf21084b09342bfdd522d404f
+
+PODFILE CHECKSUM: 3cffc8508234fb232b89c532550563e4b7929178
+
+COCOAPODS: 1.3.0.beta.2

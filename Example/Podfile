@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'AHBannerView_Example' do
+  pod 'AHBannerView', :path => '../'
+
+  target 'AHBannerView_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

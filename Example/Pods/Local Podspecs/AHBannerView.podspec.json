@@ -1,9 +1,9 @@
 {
   "name": "AHBannerView",
   "version": "0.1.0",
-  "summary": "A short description of AHBannerView.",
-  "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://github.com/Andy Tong/AHBannerView",
+  "summary": "A banner view with infinite scrolling",
+  "description": "A banner view with infinite scrolling experience",
+  "homepage": "https://github.com/ivsall2012/AHBannerView",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
@@ -12,7 +12,7 @@
     "Andy Tong": "ivsall2012@gmail.com"
   },
   "source": {
-    "git": "https://github.com/Andy Tong/AHBannerView.git",
+    "git": "https://github.com/ivsall2012/AHBannerView.git",
     "tag": "0.1.0"
   },
   "platforms": {

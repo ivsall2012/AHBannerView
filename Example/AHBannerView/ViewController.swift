@@ -31,7 +31,23 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         var isDownloaded = false
         var imgCached: UIImage? = nil
-        bannerView.setup(imageCount: 5) {[weak self] (imageView, index) in
+        
+        var style = AHBannerStyle()
+        style.placeholder = self.placeholder
+        style.isAutoSlide = true
+//        style.isInfinite = false
+//        style.isPagingEnabled = false
+        style.timeInterval = 1
+        style.showIndicator = true
+        style.indicatorColor = UIColor.red
+        style.showPageControl = true
+        style.bottomHeight = 30
+        style.isPageControlSeparated = false
+        style.pageControlColor = UIColor.gray
+        style.pageControlSelectedColor = UIColor.red
+        
+        
+        bannerView.setup(imageCount: 5, Style: style) {[weak self] (imageView, index) in
             guard let count = self?.images.count else {return}
             imageView.contentMode = .scaleAspectFill
             if index < count {
@@ -54,16 +70,6 @@ class ViewController: UIViewController {
         }
         bannerView.delegate = self
         
-        bannerView.placeholder = self.placeholder
-        bannerView.isAutoSlide = true
-        bannerView.timeInterval = 1
-        bannerView.showIndicator = true
-        bannerView.indicatorColor = UIColor.blue
-        bannerView.showPageControl = true
-        bannerView.bottomHeight = 40.0
-        bannerView.isPageControlSeparated = true
-        bannerView.pageControlColor = UIColor.gray
-        bannerView.pageControlSelectedColor = UIColor.yellow
         
         
         

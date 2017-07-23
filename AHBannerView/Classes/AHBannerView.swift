@@ -17,58 +17,35 @@ public protocol AHBannerViewDelegate: class {
 }
 
 public struct AHBannerStyle{
+    public var timeInterval: TimeInterval = 5
+    public var isAutoSlide = true
+    public var placeholder: UIImage?
+    /// should have infinite scrolling or not. If set false, autoSliding will be disable
+    public var isInfinite = true
     
+    /// if set false, autoSliding will be disable
+    public var isPagingEnabled = true
+    
+    public var showIndicator = true
+    public var indicatorColor = UIColor.yellow
+   
+    public var showPageControl = false
+    // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
+    public var isPageControlSeparated = false
+    public var pageControlColor: UIColor = UIColor.gray
+    public var pageControlSelectedColor: UIColor = UIColor.yellow
+    
+    
+    /// the height for indicator and/or pageControl
+    public var bottomHeight:CGFloat = 8.0
+    public init() {}
 }
 
 
 open class AHBannerView: UIView {
     public weak var delegate: AHBannerViewDelegate?
-    
-    public var timeInterval: TimeInterval = 5
-    
-    public var showIndicator = true
-    public var indicatorColor = UIColor.red
-    public var placeholder: UIImage?
-    public var isAutoSlide = true
-    public var pageControl: UIPageControl?
-    public var showPageControl = false {
-        didSet{
-            if showIndicator && pageControl != nil {
-                addSubview(pageControl!)
-            }else{
-                pageControl?.removeFromSuperview()
-            }
-        }
-    }
-    public var pageControlColor: UIColor = UIColor.gray
-    public var pageControlSelectedColor: UIColor = UIColor.white
-    // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
-    public var isPageControlSeparated = false {
-        didSet {
-            guard self.showPageControl else {
-                return
-            }
-            guard let pageControl = self.pageControl else {
-                return
-            }
-            var frame: CGRect = self.bounds
-            if self.isPageControlSeparated {
-                frame.size.height = self.bounds.height - self.bottomHeight
-                let layout = self.pageView.collectionViewLayout as! UICollectionViewFlowLayout
-                layout.itemSize = frame.size
-                
-                var y: CGFloat = self.bounds.height - bottomHeight
-                if isPageControlSeparated {
-                    y = self.bounds.height + bottomHeight
-                }
-                pageControl.frame.origin = .init(x: 0, y: y)
-            }
-            self.pageView.frame = frame
-        }
-    }
-    
-    // the height for indicator and/or pageControl
-    public var bottomHeight:CGFloat = 8.0
+    public var bannerStyle: AHBannerStyle = AHBannerStyle()
+    public fileprivate(set) var pageControl: UIPageControl?
     
     fileprivate var imageCount: Int = 0
     
@@ -77,7 +54,7 @@ open class AHBannerView: UIView {
     
     fileprivate var imageViewCallback: ((_ imageView: UIImageView, _ atIndex: Int) -> Void)?
     
-    // sectionCount must be larger than 2.
+    // sectionCount must be larger than 2. if set to 1, it it won't be able to perform infinite scrolling
     fileprivate var sectionCount = 4
     
     // a timer fires every self.timeInterval seconds in order to switch cell
@@ -94,31 +71,28 @@ open class AHBannerView: UIView {
     }
     
     fileprivate lazy var indicatorView: UIView = {
-        let y = self.bounds.height - self.bottomHeight
+        let y = self.bounds.height - self.bannerStyle.bottomHeight
         // only x and width is uncertain at this point
-        let frame = CGRect(x: 0, y: y, width: 0.0, height: self.bottomHeight)
+        let frame = CGRect(x: 0, y: y, width: 0.0, height: self.bannerStyle.bottomHeight)
         let view = UIView(frame: frame)
-        view.backgroundColor = self.indicatorColor
         return view
     }()
     
     fileprivate lazy var pageView: UICollectionView =  {
         var frame: CGRect = self.bounds
-        if self.showPageControl && self.isPageControlSeparated {
-            frame.size.height = self.bounds.height - self.bottomHeight
+        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
+            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
         }
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 0.0
         layout.minimumLineSpacing = 0.0
-        
         let pageView = UICollectionView(frame: frame, collectionViewLayout: layout)
         layout.itemSize = pageView.frame.size
         pageView.delegate = self
         pageView.dataSource = self
         pageView.register(AHBannerCell.self, forCellWithReuseIdentifier: AHBannerCellID)
         pageView.showsHorizontalScrollIndicator = false
-        pageView.isPagingEnabled = true
         pageView.bounces = false
         
         return pageView
@@ -143,43 +117,54 @@ open class AHBannerView: UIView {
 public extension AHBannerView {
     func refresh() {
         pageView.reloadData()
-        scrollToMiddleFirst()
+        if bannerStyle.isInfinite {
+            scrollToMiddleFirst()
+        }
         delegate?.bannerView(self, didSwitch: 0)
         didSwitchCallback?(0)
-        fireTimer()
+        if bannerStyle.isAutoSlide {
+            fireTimer()
+        }
     }
     
-    func setup(imageCount: Int,imageCallback : @escaping ((_ imageView: UIImageView, _ atIndex: Int) -> Void)) {
+    func setup(imageCount: Int, Style: AHBannerStyle,imageCallback : @escaping ((_ imageView: UIImageView, _ atIndex: Int) -> Void)) {
+        self.bannerStyle = Style
+        if self.bannerStyle.isInfinite == false || self.bannerStyle.isPagingEnabled == false {
+            self.bannerStyle.isAutoSlide = false
+        }
+        pageView.isPagingEnabled = self.bannerStyle.isPagingEnabled
         self.imageCount = imageCount
         imageViewCallback = imageCallback
-        
-        if showIndicator {
+
+        if bannerStyle.showIndicator {
             indicatorView.isHidden = false
-            indicatorView.frame.size.height = bottomHeight
+            indicatorView.frame.size.height = bannerStyle.bottomHeight
             indicatorView.frame.size.width = bounds.width / CGFloat(imageCount)
             indicatorView.frame.origin.x = 0.0
-            indicatorView.frame.origin.y = bounds.height - bottomHeight
+            indicatorView.frame.origin.y = bounds.height - bannerStyle.bottomHeight
+            indicatorView.backgroundColor = bannerStyle.indicatorColor
         }else{
             indicatorView.isHidden = true
         }
         
         // if user provides pageControl
-        if showPageControl {
+        if bannerStyle.showPageControl {
             let pageControl = UIPageControl()
             pageControl.numberOfPages = imageCount
             pageControl.currentPage = 1
-            pageControl.frame.size.height = bottomHeight
+            pageControl.frame.size.height = bannerStyle.bottomHeight
             pageControl.frame.size.width = self.bounds.width
-            var y: CGFloat = self.bounds.height - bottomHeight
-            if isPageControlSeparated {
+            var y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
+            if bannerStyle.isPageControlSeparated {
                 y = self.bounds.height
             }
             pageControl.frame.origin = .init(x: 0, y: y)
-            pageControl.pageIndicatorTintColor = pageControlColor
-            pageControl.currentPageIndicatorTintColor = pageControlSelectedColor
+            pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
+            pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
             pageControl.isUserInteractionEnabled = false
-            addSubview(pageControl)
             self.pageControl = pageControl
+            addSubview(pageControl)
+
         }
         
     }
@@ -196,10 +181,10 @@ public extension AHBannerView {
 
 private extension AHBannerView {
     func fireTimer() {
-        guard isAutoSlide else {
+        guard bannerStyle.isAutoSlide else {
             return
         }
-        timer = Timer(timeInterval: timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+        timer = Timer(timeInterval: bannerStyle.timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .defaultRunLoopMode)
     }
     
@@ -208,7 +193,7 @@ private extension AHBannerView {
     }
     
     @objc func updateTimer() {
-        guard isAutoSlide else {
+        guard bannerStyle.isAutoSlide else {
              stopTimer()
             return
         }
@@ -232,7 +217,7 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
         if let cell = cell as? AHBannerCell {
             if cell.imageView.image == nil {
                 // if there's no image yet, show placeholder
-                cell.imageView.image = self.placeholder
+                cell.imageView.image = bannerStyle.placeholder
             }
         }
     }
@@ -267,13 +252,16 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
         if decelerate {
             // scrollView is slowing down here
             // add timer
-            if isAutoSlide {
+            if bannerStyle.isAutoSlide {
                 fireTimer()
             }
         }
     }
     
     fileprivate func resetPage(_ scrollView: UIScrollView) {
+        guard bannerStyle.isInfinite else {
+            return
+        }
         let point = scrollView.contentOffset
         guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
         if currentIndexPath != finalIndexPath {
@@ -308,7 +296,8 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
 
 extension AHBannerView: UICollectionViewDataSource {
     public func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return sectionCount
+        // if it's not infinite, then there's only 1 section to display
+        return bannerStyle.isInfinite ? sectionCount : 1
     }
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return imageCount

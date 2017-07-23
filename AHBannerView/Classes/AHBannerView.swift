@@ -16,6 +16,11 @@ public protocol AHBannerViewDelegate: class {
     func bannerView(_ bannerView: AHBannerView, didSwitch toIndex: Int)
 }
 
+public struct AHBannerStyle{
+    
+}
+
+
 open class AHBannerView: UIView {
     public weak var delegate: AHBannerViewDelegate?
     
@@ -43,11 +48,20 @@ open class AHBannerView: UIView {
             guard self.showPageControl else {
                 return
             }
+            guard let pageControl = self.pageControl else {
+                return
+            }
             var frame: CGRect = self.bounds
             if self.isPageControlSeparated {
                 frame.size.height = self.bounds.height - self.bottomHeight
                 let layout = self.pageView.collectionViewLayout as! UICollectionViewFlowLayout
                 layout.itemSize = frame.size
+                
+                var y: CGFloat = self.bounds.height - bottomHeight
+                if isPageControlSeparated {
+                    y = self.bounds.height + bottomHeight
+                }
+                pageControl.frame.origin = .init(x: 0, y: y)
             }
             self.pageView.frame = frame
         }
@@ -141,7 +155,10 @@ public extension AHBannerView {
         
         if showIndicator {
             indicatorView.isHidden = false
+            indicatorView.frame.size.height = bottomHeight
             indicatorView.frame.size.width = bounds.width / CGFloat(imageCount)
+            indicatorView.frame.origin.x = 0.0
+            indicatorView.frame.origin.y = bounds.height - bottomHeight
         }else{
             indicatorView.isHidden = true
         }
@@ -153,7 +170,11 @@ public extension AHBannerView {
             pageControl.currentPage = 1
             pageControl.frame.size.height = bottomHeight
             pageControl.frame.size.width = self.bounds.width
-            pageControl.frame.origin = .init(x: 0, y: self.bounds.height - bottomHeight)
+            var y: CGFloat = self.bounds.height - bottomHeight
+            if isPageControlSeparated {
+                y = self.bounds.height
+            }
+            pageControl.frame.origin = .init(x: 0, y: y)
             pageControl.pageIndicatorTintColor = pageControlColor
             pageControl.currentPageIndicatorTintColor = pageControlSelectedColor
             pageControl.isUserInteractionEnabled = false

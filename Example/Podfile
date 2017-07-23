@@ -1,6 +1,4 @@
 use_frameworks!
-source 'git@github.com:ivsall2012/AHFMSpecs.git'
-source 'https://github.com/CocoaPods/Specs.git'
 
 target 'AHBannerView_Example' do
   pod 'AHBannerView', :path => '../'

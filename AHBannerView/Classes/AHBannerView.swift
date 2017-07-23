@@ -25,6 +25,9 @@ open class AHBannerView: UIView {
     public var indicatorColor = UIColor.red
     public var indicatorHeight: CGFloat = 3.0
     public var placeholder: UIImage?
+    public var isAutoSlide = true
+    public var pageControl: UIPageControl
+    
     
     fileprivate var imageCount: Int = 0
     fileprivate lazy var indicatorView: UIView = {
@@ -70,6 +73,7 @@ open class AHBannerView: UIView {
         pageView.bounces = false
         return pageView
     }()
+    
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -121,6 +125,9 @@ public extension AHBannerView {
 
 private extension AHBannerView {
     func fireTimer() {
+        guard isAutoSlide else {
+            return
+        }
         timer = Timer(timeInterval: timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .defaultRunLoopMode)
     }
@@ -130,6 +137,10 @@ private extension AHBannerView {
     }
     
     @objc func updateTimer() {
+        guard isAutoSlide else {
+             stopTimer()
+            return
+        }
         next()
     }
     
@@ -182,14 +193,15 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
         if decelerate {
             // scrollView is slowing down here
             // add timer
-            fireTimer()
+            if isAutoSlide {
+                fireTimer()
+            }
         }
     }
     
     fileprivate func resetPage(_ scrollView: UIScrollView) {
         let point = scrollView.contentOffset
         guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
-        
         if currentIndexPath != finalIndexPath {
             finalIndexPath = currentIndexPath
             delegate?.bannerView(self, didSwitch: finalIndexPath.row)
@@ -229,10 +241,10 @@ extension AHBannerView: UICollectionViewDataSource {
     }
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AHBannerCellID, for: indexPath) as! AHBannerCell
-        
+        cell.backgroundColor = UIColor.clear
+        cell.imageView.contentMode = .scaleAspectFit
+        cell.clipsToBounds = true
         imageViewCallback?(cell.imageView, indexPath.row)
-//        cell.titleLabel.text = "\(indexPath.section)_\(indexPath.row)"
-//        cell.titleLabel.sizeToFit()
         return cell
     }
 }

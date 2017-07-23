@@ -31,6 +31,7 @@ class ViewController: UIViewController {
             //            print("close -> didTapped:\(index)")
         }
         bannerView.placeholder = self.placeholder
+        bannerView.isAutoSlide = true
         bannerView.timeInterval = 1
         bannerView.showIndicator = true
         bannerView.indicatorColor = UIColor.blue
@@ -39,10 +40,27 @@ class ViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        var isDownloaded = false
+        var imgCached: UIImage? = nil
         bannerView.setup(imageCount: 5) {[weak self] (imageView, index) in
             guard let count = self?.images.count else {return}
+            imageView.contentMode = .scaleAspectFill
             if index < count {
                 imageView.image = self?.images[index]
+            }else if index == 3{
+                if !isDownloaded {
+                    AHDataTaskManager.shared.donwload(url: "https://firebasestorage.googleapis.com/v0/b/radarspot-72100.appspot.com/o/-KcFdzaIMNNJ1735JRWY%2FvideoImage.png?alt=media&token=4691b299-2aec-4e5b-b562-31a75a460e45", fileSizeCallback: nil, progressCallback: nil, successCallback: { (url) in
+                        isDownloaded = true
+                        if let img = UIImage(contentsOfFile: url) {
+                            imgCached = img
+                            imageView.image = img
+                        }else{
+                            print("failed to download the image")
+                        }
+                    }, failureCallback: nil)
+                }else{
+                    imageView.image = imgCached
+                }
             }
         }
         bannerView.refresh()

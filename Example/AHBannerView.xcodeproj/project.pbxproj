@@ -15,6 +15,10 @@
 		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
 		6BE644DE4B33214A1E56741E /* Pods_AHBannerView_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C5E482EC951DEE85490C579 /* Pods_AHBannerView_Tests.framework */; };
 		7F53602D2733312CD66ED2B3 /* Pods_AHBannerView_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D5414CEA987BDAF149DB69B /* Pods_AHBannerView_Example.framework */; };
+		A1D25E341F244E1C00B0FEDB /* AHDataTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D25E301F244E1C00B0FEDB /* AHDataTask.swift */; };
+		A1D25E351F244E1C00B0FEDB /* AHDataTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D25E311F244E1C00B0FEDB /* AHDataTaskManager.swift */; };
+		A1D25E361F244E1C00B0FEDB /* AHFileTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D25E321F244E1C00B0FEDB /* AHFileTool.swift */; };
+		A1D25E371F244E1C00B0FEDB /* AHHttpHeaderFileds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D25E331F244E1C00B0FEDB /* AHHttpHeaderFileds.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,9 +32,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2012237F8B86773C331E102F /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		2012237F8B86773C331E102F /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		4D5414CEA987BDAF149DB69B /* Pods_AHBannerView_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AHBannerView_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		59DEED2A45694955469767C0 /* AHBannerView.podspec */ = {isa = PBXFileReference; includeInIndex = 1; name = AHBannerView.podspec; path = ../AHBannerView.podspec; sourceTree = "<group>"; };
+		59DEED2A45694955469767C0 /* AHBannerView.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = AHBannerView.podspec; path = ../AHBannerView.podspec; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* AHBannerView_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AHBannerView_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACD51AFB9204008FA782 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -43,7 +47,11 @@
 		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		6988F4D023BA9172A9176736 /* Pods-AHBannerView_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AHBannerView_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AHBannerView_Tests/Pods-AHBannerView_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		7C5E482EC951DEE85490C579 /* Pods_AHBannerView_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AHBannerView_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		9C5F24FB02F396F5A3CFEBA0 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		9C5F24FB02F396F5A3CFEBA0 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		A1D25E301F244E1C00B0FEDB /* AHDataTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AHDataTask.swift; sourceTree = "<group>"; };
+		A1D25E311F244E1C00B0FEDB /* AHDataTaskManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AHDataTaskManager.swift; sourceTree = "<group>"; };
+		A1D25E321F244E1C00B0FEDB /* AHFileTool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AHFileTool.swift; sourceTree = "<group>"; };
+		A1D25E331F244E1C00B0FEDB /* AHHttpHeaderFileds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AHHttpHeaderFileds.swift; sourceTree = "<group>"; };
 		B084290C53B02815359F6ECF /* Pods-AHBannerView_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AHBannerView_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AHBannerView_Tests/Pods-AHBannerView_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		DEC5B2E6E61BE491493F03F9 /* Pods-AHBannerView_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AHBannerView_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AHBannerView_Example/Pods-AHBannerView_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		EAE061488C3A0125C0F3DDF8 /* Pods-AHBannerView_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AHBannerView_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-AHBannerView_Example/Pods-AHBannerView_Example.release.xcconfig"; sourceTree = "<group>"; };
@@ -106,6 +114,10 @@
 			children = (
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
+				A1D25E301F244E1C00B0FEDB /* AHDataTask.swift */,
+				A1D25E311F244E1C00B0FEDB /* AHDataTaskManager.swift */,
+				A1D25E321F244E1C00B0FEDB /* AHFileTool.swift */,
+				A1D25E331F244E1C00B0FEDB /* AHHttpHeaderFileds.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
@@ -370,8 +382,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1D25E371F244E1C00B0FEDB /* AHHttpHeaderFileds.swift in Sources */,
+				A1D25E341F244E1C00B0FEDB /* AHDataTask.swift in Sources */,
+				A1D25E361F244E1C00B0FEDB /* AHFileTool.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
+				A1D25E351F244E1C00B0FEDB /* AHDataTaskManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

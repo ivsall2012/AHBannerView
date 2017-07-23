@@ -23,21 +23,41 @@ open class AHBannerView: UIView {
     
     public var showIndicator = true
     public var indicatorColor = UIColor.red
-    public var indicatorHeight: CGFloat = 3.0
     public var placeholder: UIImage?
     public var isAutoSlide = true
-    public var pageControl: UIPageControl
+    public var pageControl: UIPageControl?
+    public var showPageControl = false {
+        didSet{
+            if showIndicator && pageControl != nil {
+                addSubview(pageControl!)
+            }else{
+                pageControl?.removeFromSuperview()
+            }
+        }
+    }
+    public var pageControlColor: UIColor = UIColor.gray
+    public var pageControlSelectedColor: UIColor = UIColor.white
+    // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
+    public var isPageControlSeparated = false {
+        didSet {
+            guard self.showPageControl else {
+                return
+            }
+            var frame: CGRect = self.bounds
+            if self.isPageControlSeparated {
+                frame.size.height = self.bounds.height - self.bottomHeight
+                let layout = self.pageView.collectionViewLayout as! UICollectionViewFlowLayout
+                layout.itemSize = frame.size
+            }
+            self.pageView.frame = frame
+        }
+    }
     
+    // the height for indicator and/or pageControl
+    public var bottomHeight:CGFloat = 8.0
     
     fileprivate var imageCount: Int = 0
-    fileprivate lazy var indicatorView: UIView = {
-        let y = self.bounds.height - self.indicatorHeight
-        // only x and width is uncertain at this point
-        let frame = CGRect(x: 0, y: y, width: 0.0, height: self.indicatorHeight)
-        let view = UIView(frame: frame)
-        view.backgroundColor = self.indicatorColor
-        return view
-    }()
+    
     fileprivate var didTappedCallback: ((_ atIndex: Int) -> Void)?
     fileprivate var didSwitchCallback: ((_ toIndex: Int) -> Void)?
     
@@ -58,19 +78,35 @@ open class AHBannerView: UIView {
     fileprivate var middleSection: Int {
         return Int(sectionCount/2)
     }
+    
+    fileprivate lazy var indicatorView: UIView = {
+        let y = self.bounds.height - self.bottomHeight
+        // only x and width is uncertain at this point
+        let frame = CGRect(x: 0, y: y, width: 0.0, height: self.bottomHeight)
+        let view = UIView(frame: frame)
+        view.backgroundColor = self.indicatorColor
+        return view
+    }()
+    
     fileprivate lazy var pageView: UICollectionView =  {
+        var frame: CGRect = self.bounds
+        if self.showPageControl && self.isPageControlSeparated {
+            frame.size.height = self.bounds.height - self.bottomHeight
+        }
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = self.bounds.size
         layout.minimumInteritemSpacing = 0.0
         layout.minimumLineSpacing = 0.0
-        let pageView = UICollectionView(frame: self.bounds, collectionViewLayout: layout)
+        
+        let pageView = UICollectionView(frame: frame, collectionViewLayout: layout)
+        layout.itemSize = pageView.frame.size
         pageView.delegate = self
         pageView.dataSource = self
         pageView.register(AHBannerCell.self, forCellWithReuseIdentifier: AHBannerCellID)
         pageView.showsHorizontalScrollIndicator = false
         pageView.isPagingEnabled = true
         pageView.bounces = false
+        
         return pageView
     }()
     
@@ -92,8 +128,6 @@ open class AHBannerView: UIView {
 
 public extension AHBannerView {
     func refresh() {
-        
-        
         pageView.reloadData()
         scrollToMiddleFirst()
         delegate?.bannerView(self, didSwitch: 0)
@@ -111,6 +145,22 @@ public extension AHBannerView {
         }else{
             indicatorView.isHidden = true
         }
+        
+        // if user provides pageControl
+        if showPageControl {
+            let pageControl = UIPageControl()
+            pageControl.numberOfPages = imageCount
+            pageControl.currentPage = 1
+            pageControl.frame.size.height = bottomHeight
+            pageControl.frame.size.width = self.bounds.width
+            pageControl.frame.origin = .init(x: 0, y: self.bounds.height - bottomHeight)
+            pageControl.pageIndicatorTintColor = pageControlColor
+            pageControl.currentPageIndicatorTintColor = pageControlSelectedColor
+            pageControl.isUserInteractionEnabled = false
+            addSubview(pageControl)
+            self.pageControl = pageControl
+        }
+        
     }
     
     func didSwitch(callBack: @escaping (_ toIndex: Int) -> Void) {
@@ -172,6 +222,9 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
         guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
         if self.currentIndexPath != currentIndexPath {
             indicatorView.frame.origin.x = CGFloat(currentIndexPath.row) * indicatorView.frame.width
+        }
+        if let pageControl = self.pageControl {
+            pageControl.currentPage = currentIndexPath.row
         }
         self.currentIndexPath = currentIndexPath
     }

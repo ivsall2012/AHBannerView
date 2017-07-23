@@ -76,7 +76,6 @@ extension AHDataTask {
             print("startDownload state is still in either downloading or pausing")
             return
         }
-        print("homeDir:\(NSHomeDirectory())")
         
         state = .notStarted
         

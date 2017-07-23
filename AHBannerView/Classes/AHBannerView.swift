@@ -94,7 +94,7 @@ open class AHBannerView: UIView {
         pageView.register(AHBannerCell.self, forCellWithReuseIdentifier: AHBannerCellID)
         pageView.showsHorizontalScrollIndicator = false
         pageView.bounces = false
-        
+        pageView.backgroundColor = UIColor.clear
         return pageView
     }()
     
@@ -151,13 +151,10 @@ public extension AHBannerView {
         if bannerStyle.showPageControl {
             let pageControl = UIPageControl()
             pageControl.numberOfPages = imageCount
-            pageControl.currentPage = 1
+            pageControl.currentPage = 0
             pageControl.frame.size.height = bannerStyle.bottomHeight
             pageControl.frame.size.width = self.bounds.width
-            var y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
-            if bannerStyle.isPageControlSeparated {
-                y = self.bounds.height
-            }
+            let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
             pageControl.frame.origin = .init(x: 0, y: y)
             pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
             pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor

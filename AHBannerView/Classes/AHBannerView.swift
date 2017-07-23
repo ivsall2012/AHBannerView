@@ -97,19 +97,6 @@ open class AHBannerView: UIView {
         pageView.backgroundColor = UIColor.clear
         return pageView
     }()
-    
-    
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        addSubview(pageView)
-        addSubview(indicatorView)
-    }
-    
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        addSubview(pageView)
-        addSubview(indicatorView)
-    }
 
 }
 
@@ -136,6 +123,9 @@ public extension AHBannerView {
         self.imageCount = imageCount
         imageViewCallback = imageCallback
 
+        addSubview(pageView)
+        addSubview(indicatorView)
+        
         if bannerStyle.showIndicator {
             indicatorView.isHidden = false
             indicatorView.frame.size.height = bannerStyle.bottomHeight
@@ -316,13 +306,6 @@ fileprivate class AHBannerCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
-
-
-//    var titleLabel: UILabel = {
-//        let titleLabel = UILabel()
-//        titleLabel.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin]
-//        return titleLabel
-//    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)

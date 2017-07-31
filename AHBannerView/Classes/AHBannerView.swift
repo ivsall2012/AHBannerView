@@ -172,7 +172,7 @@ private extension AHBannerView {
             return
         }
         timer = Timer(timeInterval: bannerStyle.timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
-        RunLoop.main.add(timer!, forMode: .defaultRunLoopMode)
+        RunLoop.main.add(timer!, forMode: .commonModes)
     }
     
     func stopTimer() {

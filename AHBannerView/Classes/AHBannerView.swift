@@ -14,6 +14,7 @@ private let AHBannerCellID = "AHBannerCellID"
 public protocol AHBannerViewDelegate: class {
     func bannerView(_ bannerView: AHBannerView, didTapped atIndex: Int)
     func bannerView(_ bannerView: AHBannerView, didSwitch toIndex: Int)
+    func bannerViewForImage(_ bannerView: AHBannerView, imageView: UIImageView, atIndex: Int)
 }
 
 public struct AHBannerStyle{
@@ -28,7 +29,7 @@ public struct AHBannerStyle{
     
     public var showIndicator = true
     public var indicatorColor = UIColor.yellow
-   
+    
     public var showPageControl = false
     // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
     public var isPageControlSeparated = false
@@ -45,14 +46,14 @@ public struct AHBannerStyle{
 open class AHBannerView: UIView {
     public weak var delegate: AHBannerViewDelegate?
     public var bannerStyle: AHBannerStyle = AHBannerStyle()
-    public fileprivate(set) var pageControl: UIPageControl?
+    public fileprivate(set) var pageControl: UIPageControl!
+    public fileprivate(set) var index: Int = -1
     
     fileprivate var imageCount: Int = 0
     
     fileprivate var didTappedCallback: ((_ atIndex: Int) -> Void)?
     fileprivate var didSwitchCallback: ((_ toIndex: Int) -> Void)?
     
-    fileprivate var imageViewCallback: ((_ imageView: UIImageView, _ atIndex: Int) -> Void)?
     
     // sectionCount must be larger than 2. if set to 1, it it won't be able to perform infinite scrolling
     fileprivate var sectionCount = 4
@@ -97,7 +98,7 @@ open class AHBannerView: UIView {
         pageView.backgroundColor = UIColor.clear
         return pageView
     }()
-
+    
 }
 
 
@@ -114,15 +115,14 @@ public extension AHBannerView {
         }
     }
     
-    func setup(imageCount: Int, Style: AHBannerStyle,imageCallback : @escaping ((_ imageView: UIImageView, _ atIndex: Int) -> Void)) {
+    func setup(imageCount: Int, Style: AHBannerStyle) {
         self.bannerStyle = Style
         if self.bannerStyle.isInfinite == false || self.bannerStyle.isPagingEnabled == false {
             self.bannerStyle.isAutoSlide = false
         }
         pageView.isPagingEnabled = self.bannerStyle.isPagingEnabled
         self.imageCount = imageCount
-        imageViewCallback = imageCallback
-
+        
         addSubview(pageView)
         addSubview(indicatorView)
         
@@ -139,20 +139,23 @@ public extension AHBannerView {
         
         // if user provides pageControl
         if bannerStyle.showPageControl {
-            let pageControl = UIPageControl()
-            pageControl.numberOfPages = imageCount
-            pageControl.currentPage = 0
-            pageControl.frame.size.height = bannerStyle.bottomHeight
-            pageControl.frame.size.width = self.bounds.width
+            
+            if pageControl == nil {
+                pageControl = UIPageControl()
+                addSubview(pageControl)
+            }
+            self.pageControl.numberOfPages = imageCount
+            self.pageControl.currentPage = 0
+            self.pageControl.frame.size.height = bannerStyle.bottomHeight
+            self.pageControl.frame.size.width = self.bounds.width
             let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
-            pageControl.frame.origin = .init(x: 0, y: y)
-            pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
-            pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
-            pageControl.isUserInteractionEnabled = false
-            self.pageControl = pageControl
-            addSubview(pageControl)
-
+            self.pageControl.frame.origin = .init(x: 0, y: y)
+            self.pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
+            self.pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
+            self.pageControl.isUserInteractionEnabled = false
+            
         }
+        self.refresh()
         
     }
     
@@ -171,6 +174,9 @@ private extension AHBannerView {
         guard bannerStyle.isAutoSlide else {
             return
         }
+        if timer != nil {
+            timer?.invalidate()
+        }
         timer = Timer(timeInterval: bannerStyle.timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
     }
@@ -181,7 +187,7 @@ private extension AHBannerView {
     
     @objc func updateTimer() {
         guard bannerStyle.isAutoSlide else {
-             stopTimer()
+            stopTimer()
             return
         }
         next()
@@ -292,9 +298,11 @@ extension AHBannerView: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AHBannerCellID, for: indexPath) as! AHBannerCell
         cell.backgroundColor = UIColor.clear
+        cell.imageView.image = nil
         cell.imageView.contentMode = .scaleAspectFit
         cell.clipsToBounds = true
-        imageViewCallback?(cell.imageView, indexPath.row)
+        self.index = indexPath.row
+        delegate?.bannerViewForImage(self, imageView: cell.imageView, atIndex: indexPath.row)
         return cell
     }
 }
@@ -324,14 +332,14 @@ fileprivate class AHBannerCell: UICollectionViewCell {
     
     func initSubviews() {
         contentView.addSubview(imageView)
-//        contentView.addSubview(titleLabel)
+        //        contentView.addSubview(titleLabel)
     }
     
     func setup() {
         imageView.frame = self.bounds
-//        titleLabel.center = imageView.center
-//        titleLabel.textAlignment = .center
-//        titleLabel.backgroundColor = UIColor.red
+        //        titleLabel.center = imageView.center
+        //        titleLabel.textAlignment = .center
+        //        titleLabel.backgroundColor = UIColor.red
     }
     
     override func layoutSubviews() {

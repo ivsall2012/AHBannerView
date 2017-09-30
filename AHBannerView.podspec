@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'AHBannerView'
-  s.version          = '0.1.4'
+  s.version          = '0.2.0'
   s.summary          = 'A banner view with infinite scrolling'
 
 # This description is used to generate tags and improve search results.

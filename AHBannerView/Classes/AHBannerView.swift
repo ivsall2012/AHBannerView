@@ -99,6 +99,17 @@ open class AHBannerView: UIView {
         return pageView
     }()
     
+    open override func layoutSubviews() {
+        super.layoutSubviews()
+        var frame: CGRect = self.bounds
+        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
+            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
+        }
+        pageView.frame = frame
+        let layout = pageView.collectionViewLayout as! UICollectionViewFlowLayout
+        layout.itemSize = pageView.frame.size
+    }
+    
 }
 
 

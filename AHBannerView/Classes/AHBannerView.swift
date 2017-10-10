@@ -108,6 +108,32 @@ open class AHBannerView: UIView {
         pageView.frame = frame
         let layout = pageView.collectionViewLayout as! UICollectionViewFlowLayout
         layout.itemSize = pageView.frame.size
+        
+        guard imageCount > 0 else {
+            return
+        }
+        addSubview(pageView)
+        addSubview(indicatorView)
+        if bannerStyle.showIndicator {
+            indicatorView.isHidden = false
+            indicatorView.frame.size.height = bannerStyle.bottomHeight
+            indicatorView.frame.size.width = bounds.width / CGFloat(imageCount)
+            indicatorView.frame.origin.x = 0.0
+            indicatorView.frame.origin.y = bounds.height - bannerStyle.bottomHeight
+        }else{
+            indicatorView.isHidden = true
+        }
+        
+        // if user provides pageControl
+        if bannerStyle.showPageControl {
+            self.pageControl.numberOfPages = imageCount
+            self.pageControl.currentPage = 0
+            self.pageControl.frame.size.height = bannerStyle.bottomHeight
+            self.pageControl.frame.size.width = self.bounds.width
+            let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
+            self.pageControl.frame.origin = .init(x: 0, y: y)
+            
+        }
     }
     
 }
@@ -124,6 +150,7 @@ public extension AHBannerView {
         if bannerStyle.isAutoSlide {
             fireTimer()
         }
+        layoutSubviews()
     }
     
     func setup(imageCount: Int, Style: AHBannerStyle) {
@@ -134,15 +161,9 @@ public extension AHBannerView {
         pageView.isPagingEnabled = self.bannerStyle.isPagingEnabled
         self.imageCount = imageCount
         
-        addSubview(pageView)
-        addSubview(indicatorView)
         
         if bannerStyle.showIndicator {
             indicatorView.isHidden = false
-            indicatorView.frame.size.height = bannerStyle.bottomHeight
-            indicatorView.frame.size.width = bounds.width / CGFloat(imageCount)
-            indicatorView.frame.origin.x = 0.0
-            indicatorView.frame.origin.y = bounds.height - bannerStyle.bottomHeight
             indicatorView.backgroundColor = bannerStyle.indicatorColor
         }else{
             indicatorView.isHidden = true
@@ -157,15 +178,12 @@ public extension AHBannerView {
             }
             self.pageControl.numberOfPages = imageCount
             self.pageControl.currentPage = 0
-            self.pageControl.frame.size.height = bannerStyle.bottomHeight
-            self.pageControl.frame.size.width = self.bounds.width
-            let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
-            self.pageControl.frame.origin = .init(x: 0, y: y)
             self.pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
             self.pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
             self.pageControl.isUserInteractionEnabled = false
             
         }
+        
         self.refresh()
         
     }

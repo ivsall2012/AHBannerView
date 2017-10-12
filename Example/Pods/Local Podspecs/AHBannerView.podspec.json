@@ -1,6 +1,6 @@
 {
   "name": "AHBannerView",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "summary": "A banner view with infinite scrolling",
   "description": "A banner view with infinite scrolling experience",
   "homepage": "https://github.com/ivsall2012/AHBannerView",
@@ -13,10 +13,14 @@
   },
   "source": {
     "git": "https://github.com/ivsall2012/AHBannerView.git",
-    "tag": "0.1.0"
+    "tag": "0.2.3"
   },
   "platforms": {
     "ios": "8.0"
+  },
+  "module_name": "AHBannerView",
+  "pod_target_xcconfig": {
+    "SWIFT_VERSION": "3.0"
   },
   "source_files": "AHBannerView/Classes/**/*"
 }

@@ -1,365 +1,83 @@
-//
-//  AHBannerView.swift
-//  AHBannerView
-//
-//  Created by Andy Tong on 7/11/17.
-//  Copyright © 2017 Andy Tong. All rights reserved.
-//
-
-import UIKit
-
-private let AHBannerCellID = "AHBannerCellID"
+import AHBannerView
+import SDWebImage
 
 
-public protocol AHBannerViewDelegate: class {
-    func bannerView(_ bannerView: AHBannerView, didTapped atIndex: Int)
-    func bannerView(_ bannerView: AHBannerView, didSwitch toIndex: Int)
-    func bannerViewForImage(_ bannerView: AHBannerView, imageView: UIImageView, atIndex: Int)
-}
+let imageURL_1 = "https://images.unsplash.com/photo-1505461560638-05d8740c0a73?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1242&h=540&fit=crop&s=f697ba12e9959ab92a785bdd792788f1"
+let imageURL_2 = "https://images.unsplash.com/photo-1507138451611-3001135909fa?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1242&h=540&fit=crop&s=f0da2b0cbf8dd3ac1feb26da4af57a97"
+let imageURL_3 = "https://images.unsplash.com/photo-1506475018410-16e2665d1a90?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1242&h=540&fit=crop&s=455e0b5aadd709080cfdd28fe699dfa4"
 
-public struct AHBannerStyle{
-    public var timeInterval: TimeInterval = 5
-    public var isAutoSlide = true
-    public var placeholder: UIImage?
-    /// should have infinite scrolling or not. If set false, autoSliding will be disable
-    public var isInfinite = true
-    
-    /// if set false, autoSliding will be disable
-    public var isPagingEnabled = true
-    
-    public var showIndicator = true
-    public var indicatorColor = UIColor.yellow
-    
-    public var showPageControl = false
-    // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
-    public var isPageControlSeparated = false
-    public var pageControlColor: UIColor = UIColor.gray
-    public var pageControlSelectedColor: UIColor = UIColor.yellow
-    
-    
-    /// the height for indicator and/or pageControl
-    public var bottomHeight:CGFloat = 8.0
-    public init() {}
-}
+let imageURL_4 = "https://images.unsplash.com/photo-1507317688543-678604fef4a0?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1242&h=540&fit=crop&s=a1e2900cd21a406e1b86ffd06d71dbbc"
 
-
-open class AHBannerView: UIView {
-    public weak var delegate: AHBannerViewDelegate?
-    public var bannerStyle: AHBannerStyle = AHBannerStyle()
-    public fileprivate(set) var pageControl: UIPageControl!
-    public fileprivate(set) var index: Int = -1
+class ViewController: UIViewController {
+    var bannerView: AHBannerView!
+    let images = [imageURL_1,imageURL_2,imageURL_3,imageURL_4]
+    var style = AHBannerStyle()
     
-    fileprivate var imageCount: Int = 0
-    
-    fileprivate var didTappedCallback: ((_ atIndex: Int) -> Void)?
-    fileprivate var didSwitchCallback: ((_ toIndex: Int) -> Void)?
-    
-    
-    // sectionCount must be larger than 2. if set to 1, it it won't be able to perform infinite scrolling
-    fileprivate var sectionCount = 4
-    
-    // a timer fires every self.timeInterval seconds in order to switch cell
-    fileprivate var timer: Timer?
-    
-    // this indexPath only changes when the cell becomes static
-    fileprivate var finalIndexPath: IndexPath = IndexPath(item: 0, section: 0)
-    
-    // this indexPath changes constantly as scrolling to left or right
-    fileprivate var currentIndexPath: IndexPath = IndexPath(item: 0, section: 0)
-    
-    fileprivate var middleSection: Int {
-        return Int(sectionCount/2)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.title = "AHBannerView"
+        
+        let bannerFrame = CGRect(x: 0, y: 64.0, width: self.view.bounds.width, height: 200.0)
+        bannerView = AHBannerView(frame: bannerFrame)
+        
+        style.placeholder = UIImage(named: "placeholder")
+        style.isAutoSlide = true
+        //        style.isInfinite = false
+        //        style.isPagingEnabled = false
+        style.timeInterval = 1
+        
+//        showIndicatorSettings()
+        showPageControlSettings()
+        
+        
+        bannerView.setup(imageCount: self.images.count, Style: style)
+        bannerView.delegate = self
+        
+        self.view.addSubview(bannerView)
     }
     
-    fileprivate lazy var indicatorView: UIView = {
-        let y = self.bounds.height - self.bannerStyle.bottomHeight
-        // only x and width is uncertain at this point
-        let frame = CGRect(x: 0, y: y, width: 0.0, height: self.bannerStyle.bottomHeight)
-        let view = UIView(frame: frame)
-        return view
-    }()
-    
-    fileprivate lazy var pageView: UICollectionView =  {
-        var frame: CGRect = self.bounds
-        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
-            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
-        }
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumInteritemSpacing = 0.0
-        layout.minimumLineSpacing = 0.0
-        let pageView = UICollectionView(frame: frame, collectionViewLayout: layout)
-        layout.itemSize = pageView.frame.size
-        pageView.delegate = self
-        pageView.dataSource = self
-        pageView.register(AHBannerCell.self, forCellWithReuseIdentifier: AHBannerCellID)
-        pageView.showsHorizontalScrollIndicator = false
-        pageView.bounces = false
-        pageView.backgroundColor = UIColor.clear
-        return pageView
-    }()
-    
-    open override func layoutSubviews() {
-        super.layoutSubviews()
-        var frame: CGRect = self.bounds
-        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
-            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
-        }
-        pageView.frame = frame
-        let layout = pageView.collectionViewLayout as! UICollectionViewFlowLayout
-        layout.itemSize = pageView.frame.size
+    func showIndicatorSettings() {
+        style.bottomHeight = 5.0
+        style.showIndicator = true
+        style.showPageControl = false
+        style.indicatorColor = UIColor.red
+        
+        
+        style.showPageControl = false
     }
     
-}
-
-
-public extension AHBannerView {
-    func refresh() {
-        pageView.reloadData()
-        if bannerStyle.isInfinite {
-            scrollToMiddleFirst()
-        }
-        delegate?.bannerView(self, didSwitch: 0)
-        didSwitchCallback?(0)
-        if bannerStyle.isAutoSlide {
-            fireTimer()
-        }
-    }
-    
-    func setup(imageCount: Int, Style: AHBannerStyle) {
-        self.bannerStyle = Style
-        if self.bannerStyle.isInfinite == false || self.bannerStyle.isPagingEnabled == false {
-            self.bannerStyle.isAutoSlide = false
-        }
-        pageView.isPagingEnabled = self.bannerStyle.isPagingEnabled
-        self.imageCount = imageCount
+    func showPageControlSettings() {
+        style.bottomHeight = 25.0
         
-        addSubview(pageView)
-        addSubview(indicatorView)
+        style.showIndicator = false
         
-        if bannerStyle.showIndicator {
-            indicatorView.isHidden = false
-            indicatorView.frame.size.height = bannerStyle.bottomHeight
-            indicatorView.frame.size.width = bounds.width / CGFloat(imageCount)
-            indicatorView.frame.origin.x = 0.0
-            indicatorView.frame.origin.y = bounds.height - bannerStyle.bottomHeight
-            indicatorView.backgroundColor = bannerStyle.indicatorColor
-        }else{
-            indicatorView.isHidden = true
-        }
-        
-        // if user provides pageControl
-        if bannerStyle.showPageControl {
-            
-            if pageControl == nil {
-                pageControl = UIPageControl()
-                addSubview(pageControl)
-            }
-            self.pageControl.numberOfPages = imageCount
-            self.pageControl.currentPage = 0
-            self.pageControl.frame.size.height = bannerStyle.bottomHeight
-            self.pageControl.frame.size.width = self.bounds.width
-            let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
-            self.pageControl.frame.origin = .init(x: 0, y: y)
-            self.pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
-            self.pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
-            self.pageControl.isUserInteractionEnabled = false
-            
-        }
-        self.refresh()
+        style.showPageControl = true
+        style.showIndicator = false
+        style.pageControlColor = UIColor.gray
+        style.pageControlSelectedColor = UIColor.red
         
     }
     
-    func didSwitch(callBack: @escaping (_ toIndex: Int) -> Void) {
-        self.didSwitchCallback = callBack
-    }
-    
-    func didTapped(callback :@escaping (_ atIndex: Int) -> Void) {
-        self.didTappedCallback = callback
-    }
-}
-
-
-private extension AHBannerView {
-    func fireTimer() {
-        guard bannerStyle.isAutoSlide else {
-            return
-        }
-        if timer != nil {
-            timer?.invalidate()
-        }
-        timer = Timer(timeInterval: bannerStyle.timeInterval, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
-        RunLoop.main.add(timer!, forMode: .commonModes)
-    }
-    
-    func stopTimer() {
-        timer?.invalidate()
-    }
-    
-    @objc func updateTimer() {
-        guard bannerStyle.isAutoSlide else {
-            stopTimer()
-            return
-        }
-        next()
-    }
-    
-    func next() {
-        let offsetX = pageView.contentOffset.x + pageView.bounds.width
-        let point = CGPoint(x: offsetX, y: 0.0)
-        pageView.setContentOffset(point, animated: true)
-    }
-}
-
-extension AHBannerView: UICollectionViewDelegateFlowLayout {
-    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        delegate?.bannerView(self, didTapped: indexPath.row)
-        didTappedCallback?(indexPath.row)
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if let cell = cell as? AHBannerCell {
-            if cell.imageView.image == nil {
-                // if there's no image yet, show placeholder
-                cell.imageView.image = bannerStyle.placeholder
-            }
-        }
-    }
-    
-    
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let point = scrollView.contentOffset
-        guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
-        if self.currentIndexPath != currentIndexPath {
-            indicatorView.frame.origin.x = CGFloat(currentIndexPath.row) * indicatorView.frame.width
-        }
-        if let pageControl = self.pageControl {
-            pageControl.currentPage = currentIndexPath.row
-        }
-        self.currentIndexPath = currentIndexPath
-    }
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        // triggerd when user finished actively dragging the scrollView
-        resetPage(scrollView)
-    }
-    
-    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        // triggered when setting contentOffset programatically with animation
-        resetPage(scrollView)
-    }
-    
-    public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        // remove timer
-        stopTimer()
-    }
-    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if decelerate {
-            // scrollView is slowing down here
-            // add timer
-            if bannerStyle.isAutoSlide {
-                fireTimer()
-            }
-        }
-    }
-    
-    fileprivate func resetPage(_ scrollView: UIScrollView) {
-        guard bannerStyle.isInfinite else {
-            return
-        }
-        let point = scrollView.contentOffset
-        guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
-        if currentIndexPath != finalIndexPath {
-            finalIndexPath = currentIndexPath
-            delegate?.bannerView(self, didSwitch: finalIndexPath.row)
-            didSwitchCallback?(finalIndexPath.row)
-        }
-        
-        if currentIndexPath.section == 0 && currentIndexPath.row == 0 {
-            // first section, first row
-            scrollToMiddleFirst()
-        }else if currentIndexPath.section == (sectionCount - 1) && currentIndexPath.row == (imageCount - 1){
-            // last section, last row
-            scrollToMiddleLast()
-        }
-    }
-    
-    // scroll to middle section, last row
-    fileprivate func scrollToMiddleLast() {
-        let toIndexPath = IndexPath(item: imageCount - 1, section: middleSection)
-        // turn off animation so that scrollViewDidEndDecelerating and scrollViewDidEndScrollingAnimation won't be triggered.
-        pageView.scrollToItem(at: toIndexPath, at: .left, animated: false)
-    }
-    // scroll to middle section, first row
-    fileprivate func scrollToMiddleFirst() {
-        let toIndexPath = IndexPath(item: 0, section: middleSection)
-        // turn off animation so that scrollViewDidEndDecelerating and scrollViewDidEndScrollingAnimation won't be triggered.
-        pageView.scrollToItem(at: toIndexPath, at: .left, animated: false)
-    }
     
 }
 
-extension AHBannerView: UICollectionViewDataSource {
-    public func numberOfSections(in collectionView: UICollectionView) -> Int {
-        // if it's not infinite, then there's only 1 section to display
-        return bannerStyle.isInfinite ? sectionCount : 1
+extension ViewController: AHBannerViewDelegate {
+    func bannerViewForImage(_ bannerView: AHBannerView, imageView: UIImageView, atIndex: Int) {
+        let thisURL = URL(string: self.images[atIndex])
+        imageView.contentMode = .scaleAspectFill
+        imageView.sd_setImage(with: thisURL) {[weak self] (image, _, _, thatURL) in
+            guard self != self else {return}
+            /// NOTE: The folowing guard statement is for preventing images being mismatched and assigned to the wrong imageView, when the inital imageView being recyled before the initial image request callback gets called.
+            /// It's the same idea applied when you deal with tableView/collectionView cells.
+            guard thisURL == thatURL else {return}
+            guard let image = image else {return}
+            imageView.image = image
+        }
     }
-    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imageCount
+    func bannerView(_ bannerView: AHBannerView, didSwitch toIndex: Int) {
+                print("bannerView -> didSwitch:\(toIndex)")
     }
-    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AHBannerCellID, for: indexPath) as! AHBannerCell
-        cell.backgroundColor = UIColor.clear
-        cell.imageView.image = nil
-        cell.imageView.contentMode = .scaleAspectFit
-        cell.clipsToBounds = true
-        self.index = indexPath.row
-        delegate?.bannerViewForImage(self, imageView: cell.imageView, atIndex: indexPath.row)
-        return cell
-    }
-}
-
-
-fileprivate class AHBannerCell: UICollectionViewCell {
-    var imageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        initSubviews()
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        initSubviews()
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        imageView.image = nil
-    }
-    
-    func initSubviews() {
-        contentView.addSubview(imageView)
-        //        contentView.addSubview(titleLabel)
-    }
-    
-    func setup() {
-        imageView.frame = self.bounds
-        //        titleLabel.center = imageView.center
-        //        titleLabel.textAlignment = .center
-        //        titleLabel.backgroundColor = UIColor.red
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        setup()
+    func bannerView(_ bannerView: AHBannerView, didTapped atIndex: Int) {
+                print("bannerView -> didTapped:\(atIndex)")
     }
 }
-
-
-
-
-

@@ -1,16 +1,21 @@
 PODS:
-  - AHBannerView (0.1.0)
+  - AHBannerView (0.2.3)
+  - SDWebImage (4.1.1):
+    - SDWebImage/Core (= 4.1.1)
+  - SDWebImage/Core (4.1.1)
 
 DEPENDENCIES:
   - AHBannerView (from `../`)
+  - SDWebImage
 
 EXTERNAL SOURCES:
   AHBannerView:
     :path: ../
 
 SPEC CHECKSUMS:
-  AHBannerView: 0bf4248253b090bef45413495543ce57f3ecfd4f
+  AHBannerView: c9ecdcb0fbf09d834eeefb111dc1dc0e7a45f173
+  SDWebImage: caf91ee75671c95eb7b3073cd90649d25f852a88
 
-PODFILE CHECKSUM: ea071111570d123e518d210dd01b30a6a21694e2
+PODFILE CHECKSUM: 6dbccb831e254fc331c3b80fc86cdbd65e454723
 
 COCOAPODS: 1.3.0.beta.2

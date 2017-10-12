@@ -18,26 +18,26 @@ public protocol AHBannerViewDelegate: class {
 }
 
 public struct AHBannerStyle{
-    public var timeInterval: TimeInterval = 5
+    public var timeInterval: TimeInterval = 3
     public var isAutoSlide = true
     public var placeholder: UIImage?
-    /// should have infinite scrolling or not. If set false, autoSliding will be disable
+    
+    /// Should have infinite scrolling or not. If set false, autoSliding will be disable
     public var isInfinite = true
     
-    /// if set false, autoSliding will be disable
+    /// If set false, autoSliding will be disable
     public var isPagingEnabled = true
     
     public var showIndicator = true
     public var indicatorColor = UIColor.yellow
     
     public var showPageControl = false
-    // Is this pageControl separate from the items, which makes pageControl has its own space on the bottom. Or it should be embedded onto the items's bottom
-    public var isPageControlSeparated = false
+    
     public var pageControlColor: UIColor = UIColor.gray
     public var pageControlSelectedColor: UIColor = UIColor.yellow
     
     
-    /// the height for indicator and/or pageControl
+    /// the height of the area at the bottom for indicator or pageControl.
     public var bottomHeight:CGFloat = 8.0
     public init() {}
 }
@@ -76,19 +76,18 @@ open class AHBannerView: UIView {
         // only x and width is uncertain at this point
         let frame = CGRect(x: 0, y: y, width: 0.0, height: self.bannerStyle.bottomHeight)
         let view = UIView(frame: frame)
+        self.addSubview(view)
         return view
     }()
     
-    fileprivate lazy var pageView: UICollectionView =  {
+    fileprivate lazy var pageView: AHCollectionView =  {
         var frame: CGRect = self.bounds
-        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
-            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
-        }
+        frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 0.0
         layout.minimumLineSpacing = 0.0
-        let pageView = UICollectionView(frame: frame, collectionViewLayout: layout)
+        let pageView = AHCollectionView(frame: frame, collectionViewLayout: layout)
         layout.itemSize = pageView.frame.size
         pageView.delegate = self
         pageView.dataSource = self
@@ -96,15 +95,14 @@ open class AHBannerView: UIView {
         pageView.showsHorizontalScrollIndicator = false
         pageView.bounces = false
         pageView.backgroundColor = UIColor.clear
+        self.addSubview(pageView)
         return pageView
     }()
     
     open override func layoutSubviews() {
         super.layoutSubviews()
         var frame: CGRect = self.bounds
-        if self.bannerStyle.showPageControl && self.bannerStyle.isPageControlSeparated {
-            frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
-        }
+        frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
         pageView.frame = frame
         let layout = pageView.collectionViewLayout as! UICollectionViewFlowLayout
         layout.itemSize = pageView.frame.size
@@ -112,8 +110,8 @@ open class AHBannerView: UIView {
         guard imageCount > 0 else {
             return
         }
-        addSubview(pageView)
-        addSubview(indicatorView)
+
+        
         if bannerStyle.showIndicator {
             indicatorView.isHidden = false
             indicatorView.frame.size.height = bannerStyle.bottomHeight
@@ -124,7 +122,7 @@ open class AHBannerView: UIView {
             indicatorView.isHidden = true
         }
         
-        // if user provides pageControl
+
         if bannerStyle.showPageControl {
             self.pageControl.numberOfPages = imageCount
             self.pageControl.currentPage = 0
@@ -133,6 +131,8 @@ open class AHBannerView: UIView {
             let y: CGFloat = self.bounds.height - bannerStyle.bottomHeight
             self.pageControl.frame.origin = .init(x: 0, y: y)
             
+        }else{
+            self.pageControl.isHidden = true
         }
     }
     
@@ -140,7 +140,7 @@ open class AHBannerView: UIView {
 
 
 public extension AHBannerView {
-    func refresh() {
+    fileprivate func refresh() {
         pageView.reloadData()
         if bannerStyle.isInfinite {
             scrollToMiddleFirst()
@@ -153,7 +153,8 @@ public extension AHBannerView {
         layoutSubviews()
     }
     
-    func setup(imageCount: Int, Style: AHBannerStyle) {
+    /// Setup when you have different data source.
+    public func setup(imageCount: Int, Style: AHBannerStyle) {
         self.bannerStyle = Style
         if self.bannerStyle.isInfinite == false || self.bannerStyle.isPagingEnabled == false {
             self.bannerStyle.isAutoSlide = false
@@ -169,31 +170,18 @@ public extension AHBannerView {
             indicatorView.isHidden = true
         }
         
-        // if user provides pageControl
-        if bannerStyle.showPageControl {
-            
-            if pageControl == nil {
-                pageControl = UIPageControl()
-                addSubview(pageControl)
-            }
-            self.pageControl.numberOfPages = imageCount
-            self.pageControl.currentPage = 0
-            self.pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
-            self.pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
-            self.pageControl.isUserInteractionEnabled = false
-            
+        if pageControl == nil {
+            pageControl = UIPageControl()
+            addSubview(pageControl)
         }
+        self.pageControl.numberOfPages = imageCount
+        self.pageControl.currentPage = 0
+        self.pageControl.pageIndicatorTintColor = bannerStyle.pageControlColor
+        self.pageControl.currentPageIndicatorTintColor = bannerStyle.pageControlSelectedColor
+        self.pageControl.isUserInteractionEnabled = false
         
         self.refresh()
         
-    }
-    
-    func didSwitch(callBack: @escaping (_ toIndex: Int) -> Void) {
-        self.didSwitchCallback = callBack
-    }
-    
-    func didTapped(callback :@escaping (_ atIndex: Int) -> Void) {
-        self.didTappedCallback = callback
     }
 }
 
@@ -230,6 +218,9 @@ private extension AHBannerView {
 }
 
 extension AHBannerView: UICollectionViewDelegateFlowLayout {
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return self.pageView.frame.size
+    }
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bannerView(self, didTapped: indexPath.row)
         didTappedCallback?(indexPath.row)
@@ -378,6 +369,17 @@ fileprivate class AHBannerCell: UICollectionViewCell {
 }
 
 
-
+class AHCollectionView: UICollectionView {
+    /// this override is to prevent viewControllers to modify collectionView's contentInset when the viewController's automaticallyAdjustsScrollViewInsets is, by default, true.
+    override var contentInset: UIEdgeInsets{
+        set {
+            
+        }
+        
+        get {
+            return UIEdgeInsets.zero
+        }
+    }
+}
 
 

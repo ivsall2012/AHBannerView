@@ -51,9 +51,6 @@ open class AHBannerView: UIView {
     
     fileprivate var imageCount: Int = 0
     
-    fileprivate var didTappedCallback: ((_ atIndex: Int) -> Void)?
-    fileprivate var didSwitchCallback: ((_ toIndex: Int) -> Void)?
-    
     
     // sectionCount must be larger than 2. if set to 1, it it won't be able to perform infinite scrolling
     fileprivate var sectionCount = 4
@@ -88,7 +85,6 @@ open class AHBannerView: UIView {
         layout.minimumInteritemSpacing = 0.0
         layout.minimumLineSpacing = 0.0
         let pageView = AHCollectionView(frame: frame, collectionViewLayout: layout)
-        layout.itemSize = pageView.frame.size
         pageView.delegate = self
         pageView.dataSource = self
         pageView.register(AHBannerCell.self, forCellWithReuseIdentifier: AHBannerCellID)
@@ -104,13 +100,10 @@ open class AHBannerView: UIView {
         var frame: CGRect = self.bounds
         frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
         pageView.frame = frame
-        let layout = pageView.collectionViewLayout as! UICollectionViewFlowLayout
-        layout.itemSize = pageView.frame.size
-        
         guard imageCount > 0 else {
             return
         }
-
+        
         
         if bannerStyle.showIndicator {
             indicatorView.isHidden = false
@@ -122,7 +115,7 @@ open class AHBannerView: UIView {
             indicatorView.isHidden = true
         }
         
-
+        
         if bannerStyle.showPageControl {
             self.pageControl.numberOfPages = imageCount
             self.pageControl.currentPage = 0
@@ -141,16 +134,15 @@ open class AHBannerView: UIView {
 
 public extension AHBannerView {
     fileprivate func refresh() {
+        layoutSubviews()
         pageView.reloadData()
         if bannerStyle.isInfinite {
             scrollToMiddleFirst()
         }
         delegate?.bannerView(self, didSwitch: 0)
-        didSwitchCallback?(0)
         if bannerStyle.isAutoSlide {
             fireTimer()
         }
-        layoutSubviews()
     }
     
     /// Setup when you have different data source.
@@ -223,7 +215,6 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
     }
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         delegate?.bannerView(self, didTapped: indexPath.row)
-        didTappedCallback?(indexPath.row)
     }
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -237,7 +228,9 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
     
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let point = scrollView.contentOffset
+        var point = scrollView.contentOffset
+        point.x += 1
+        point.y += 1
         guard let currentIndexPath = pageView.indexPathForItem(at: point) else {return}
         if self.currentIndexPath != currentIndexPath {
             indicatorView.frame.origin.x = CGFloat(currentIndexPath.row) * indicatorView.frame.width
@@ -280,7 +273,6 @@ extension AHBannerView: UICollectionViewDelegateFlowLayout {
         if currentIndexPath != finalIndexPath {
             finalIndexPath = currentIndexPath
             delegate?.bannerView(self, didSwitch: finalIndexPath.row)
-            didSwitchCallback?(finalIndexPath.row)
         }
         
         if currentIndexPath.section == 0 && currentIndexPath.row == 0 {

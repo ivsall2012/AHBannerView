@@ -100,6 +100,14 @@ open class AHBannerView: UIView {
         var frame: CGRect = self.bounds
         frame.size.height = self.bounds.height - self.bannerStyle.bottomHeight
         pageView.frame = frame
+        if pageView.frame != frame {
+            // reload when frame pageView's frame changes
+            pageView.frame = frame
+            DispatchQueue.main.async {
+                self.refresh()
+            }
+            return
+        }
         guard imageCount > 0 else {
             return
         }

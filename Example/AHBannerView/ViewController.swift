@@ -8,9 +8,11 @@ let imageURL_3 = "https://images.unsplash.com/photo-1506475018410-16e2665d1a90?i
 
 let imageURL_4 = "https://images.unsplash.com/photo-1507317688543-678604fef4a0?ixlib=rb-0.3.5&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1242&h=540&fit=crop&s=a1e2900cd21a406e1b86ffd06d71dbbc"
 
+let imageURL_5 = "https://unsplash.com/photos/a-woman-sitting-on-top-of-a-sand-dune-HYtBA9xDyfg"
+
 class ViewController: UIViewController {
     var bannerView: AHBannerView!
-    let images = [imageURL_1,imageURL_2,imageURL_3,imageURL_4]
+    let images = [imageURL_1,imageURL_2,imageURL_3,imageURL_4,imageURL_5]
     var style = AHBannerStyle()
     
     override func viewDidLoad() {
